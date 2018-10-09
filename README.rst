@@ -1,6 +1,9 @@
 mongoqueue
 ----------
 
+.. image:: https://travis-ci.com/rupello/mongoqueue.svg?branch=master
+    :target: https://travis-ci.com/rupello/mongoqueue
+
 Properties
 ==========
 
