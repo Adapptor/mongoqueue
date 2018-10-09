@@ -6,9 +6,9 @@ python:
   - "3.6"
   - "3.7-dev"
 env:
-  - PYMONGO_VERSION=3.7.1
+  - PYMONGO_VERSION=3.7
   - PYMONGO_VERSION=3.0
-  - PYMONGO_VERSION=2.0
+  - PYMONGO_VERSION=2.4
 services:
   - mongodb
 # command to install dependencies
