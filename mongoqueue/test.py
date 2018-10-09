@@ -24,7 +24,7 @@ class MongoLockTest(TestCase):
     def test_lock_acquire_release_context_manager(self):
         with lock(self.collection, 'test1') as l:
             self.assertTrue(l.locked)
-        self.assertEqual(self.collection.find().count(), 0)
+        self.assertEqual(self.collection.count_documents(filter={}), 0)
 
     def test_auto_expires_old(self):
         lock = MongoLock(self.collection, 'test2', lease=2)
@@ -116,22 +116,6 @@ class MongoQueueTest(TestCase):
 
     def test_progress(self):
         pass
-
-    def test_stats(self):
-
-        for i in range(5):
-            data = {"context_id": "alpha",
-                    "data": [1, 2, 3],
-                    "more-data": time.time()}
-            self.queue.put(data)
-        job = self.queue.next()
-        job.error("problem")
-
-        stats = self.queue.stats()
-        self.assertEqual({'available': 5,
-                          'total': 5,
-                          'locked': 0,
-                          'errors': 0}, stats)
 
     def test_context_manager_error(self):
         self.queue.put({"foobar": 1})
