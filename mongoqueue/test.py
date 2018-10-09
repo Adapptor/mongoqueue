@@ -24,7 +24,7 @@ class MongoLockTest(TestCase):
     def test_lock_acquire_release_context_manager(self):
         with lock(self.collection, 'test1') as l:
             self.assertTrue(l.locked)
-        self.assertEqual(self.collection.count_documents(filter={}), 0)
+        self.assertEqual(self.collection.count(),0)
 
     def test_auto_expires_old(self):
         lock = MongoLock(self.collection, 'test2', lease=2)
