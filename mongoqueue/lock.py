@@ -22,7 +22,7 @@ class MongoLock(object):
     def __init__(self, collection, lock_name, lease=120):
         self.collection = collection
         self.lock_name = lock_name
-        self._client_id = uuid.uuid4().get_hex()
+        self._client_id = uuid.uuid4().hex
         self._locked = False
         self._lease_time = lease
         self._lock_expires = False
@@ -57,7 +57,7 @@ class MongoLock(object):
                 '_id': self.lock_name,
                 'ttl': ttl,
                 'client_id': self._client_id},
-                w=1, j=1)
+                w=1, j=True)
         except errors.DuplicateKeyError:
             self.collection.remove(
                 {"_id": self.lock_name, 'ttl': {'$lt': datetime.now()}})
@@ -65,7 +65,7 @@ class MongoLock(object):
                 self.collection.insert(
                     {'_id': self.lock_name,
                      'ttl': ttl,
-                     'client_id': self._client_id}, w=1, j=1)
+                     'client_id': self._client_id}, w=1, j=True)
             except errors.DuplicateKeyError:
                 self._locked = False
                 return self._locked
