@@ -26,10 +26,10 @@ A queue can be instantiated with a mongo collection and a consumer
 identifier. The consumer identifier helps distinguish multiple queue
 consumers that are taking jobs from the queue::
 
-  >> from pymongo import Connection
+  >> from pymongo import MongoClient
   >> from mongoqueue import MongoQueue
   >> queue = MongoQueue(
-  ...   Connection(TEST_DB).doctest_queue,
+  ...   MongoClient(TEST_DB).doctest_queue,
   ...   consumer_id="consumer-1",
   ...   timeout=300,
   ...   max_attempts=3)
