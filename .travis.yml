@@ -5,11 +5,15 @@ python:
   - "3.5"
   - "3.6"
   - "3.7-dev"
-# command to install dependencies
+env:
+  - PYMONGO_VERSION=3.6.1
+  - PYMONGO_VERSION=3.7.1
+  - PYMONGO_VERSION=3.7.1
 services:
   - mongodb
+# command to install dependencies
 install:
-  - pip install -r requirements.txt
+  - pip install -q pymongo==$PYMONGO_VERSION
 # command to run tests
 script:
   - python -m unittest discover
