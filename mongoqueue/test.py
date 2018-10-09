@@ -14,7 +14,7 @@ from .lock import MongoLock, lock
 class MongoLockTest(TestCase):
 
     def setUp(self):
-        self.client = pymongo.Connection(os.environ.get("TEST_MONGODB"))
+        self.client = pymongo.MongoClient(os.environ.get("TEST_MONGODB"))
         self.db = self.client.test_queue
         self.collection = self.db.locks
 
@@ -54,7 +54,7 @@ class MongoLockTest(TestCase):
 class MongoQueueTest(TestCase):
 
     def setUp(self):
-        self.client = pymongo.Connection(os.environ.get("TEST_MONGODB"))
+        self.client = pymongo.MongoClient(os.environ.get("TEST_MONGODB"))
         self.db = self.client.test_queue
         self.queue = MongoQueue(self.db.queue_1, "consumer_1")
 
@@ -145,7 +145,7 @@ class MongoQueueTest(TestCase):
             pass
 
         job = self.queue.next()
-        self.assertEqual(job.data['attempts'], 1)
+        self.assertEqual(job.attempts, 1)
 
     def test_context_manager_complete(self):
         self.queue.put({"foobar": 1})
