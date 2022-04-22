@@ -93,7 +93,8 @@ class MongoQueue(object):
                              "locked_at": datetime.now()}},
             sort=[('priority', pymongo.DESCENDING)],
             new=1,
-            limit=1
+            # This causes an error with MongoDB 4.2.
+            # limit=1
         ))
 
     def _jobs(self):
