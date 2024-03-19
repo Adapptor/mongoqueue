@@ -52,14 +52,14 @@ class MongoQueue(object):
     def size(self):
         """Total size of the queue
         """
-        return self.collection.count()
+        return self.collection.count_documents()
 
     def repair(self):
         """Clear out stale locks.
 
         Increments per job attempt counter.
         """
-        self.collection.find_and_modify(
+        self.collection.find_one_and_update(
             query={
                 "locked_by": {"$ne": None},
                 "locked_at": {
@@ -72,9 +72,8 @@ class MongoQueue(object):
     def drop_max_attempts(self):
         """
         """
-        self.collection.find_and_modify(
-            {"attempts": {"$gte": self.max_attempts}},
-            remove=True)
+        self.collection.find_one_and_delete(
+            {"attempts": {"$gte": self.max_attempts}})
 
     def put(self, payload, priority=0):
         """Place a job into the queue
@@ -85,7 +84,7 @@ class MongoQueue(object):
         return self.collection.insert(job)
 
     def next(self):
-        return self._wrap_one(self.collection.find_and_modify(
+        return self._wrap_one(self.collection.find_one_and_update(
             query={"locked_by": None,
                    "locked_at": None,
                    "attempts": {"$lt": self.max_attempts}},
@@ -175,14 +174,13 @@ class Job(object):
     def complete(self):
         """Job has been completed.
         """
-        return self._queue.collection.find_and_modify(
-            {"_id": self.job_id, "locked_by": self._queue.consumer_id},
-            remove=True)
+        return self._queue.collection.find_one_and_delete(
+            {"_id": self.job_id, "locked_by": self._queue.consumer_id})
 
     def error(self, message=None):
         """Note an error processing a job, and return it to the queue.
         """
-        self._queue.collection.find_and_modify(
+        self._queue.collection.find_one_and_update(
             {"_id": self.job_id, "locked_by": self._queue.consumer_id},
             update={"$set": {
                 "locked_by": None, "locked_at": None, "last_error": message},
@@ -191,14 +189,14 @@ class Job(object):
     def progress(self, count=0):
         """Note progress on a long running task.
         """
-        return self._queue.collection.find_and_modify(
+        return self._queue.collection.find_one_and_update(
             {"_id": self.job_id, "locked_by": self._queue.consumer_id},
             update={"$set": {"progress": count, "locked_at": datetime.now()}})
 
     def release(self):
         """Put the job back into_queue.
         """
-        return self._queue.collection.find_and_modify(
+        return self._queue.collection.find_one_and_update(
             {"_id": self.job_id, "locked_by": self._queue.consumer_id},
             update={"$set": {"locked_by": None, "locked_at": None},
                     "$inc": {"attempts": 1}})

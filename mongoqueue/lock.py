@@ -53,16 +53,16 @@ class MongoLock(object):
     def _acquire(self):
         ttl = datetime.now() + timedelta(seconds=self._lease_time)
         try:
-            self.collection.insert({
+            self.collection.insert_one({
                 '_id': self.lock_name,
                 'ttl': ttl,
                 'client_id': self._client_id},
                 w=1, j=True)
         except errors.DuplicateKeyError:
-            self.collection.remove(
+            self.collection.delete_one(
                 {"_id": self.lock_name, 'ttl': {'$lt': datetime.now()}})
             try:
-                self.collection.insert(
+                self.collection.insert_one(
                     {'_id': self.lock_name,
                      'ttl': ttl,
                      'client_id': self._client_id}, w=1, j=True)
@@ -76,7 +76,7 @@ class MongoLock(object):
     def release(self):
         if not self._locked:
             return False
-        self.collection.remove(
+        self.collection.delete_one(
             {"_id": self.lock_name, 'client_id': self._client_id}, j=True, w=1)
         self._locked = False
         return True
