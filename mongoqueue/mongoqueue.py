@@ -52,7 +52,7 @@ class MongoQueue(object):
     def size(self):
         """Total size of the queue
         """
-        return self.collection.count_documents()
+        return self.collection.estimated_document_count()
 
     def repair(self):
         """Clear out stale locks.
