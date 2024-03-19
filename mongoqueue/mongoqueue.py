@@ -81,7 +81,7 @@ class MongoQueue(object):
         job = dict(DEFAULT_INSERT)
         job['priority'] = priority
         job['payload'] = payload
-        return self.collection.insert(job)
+        return self.collection.insert_one(job)
 
     def next(self):
         return self._wrap_one(self.collection.find_one_and_update(
