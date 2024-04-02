@@ -89,7 +89,7 @@ class MongoQueue(object):
             update={"$set": {"locked_by": self.consumer_id,
                              "locked_at": datetime.now()}},
             sort=[('priority', pymongo.DESCENDING)],
-            return_document=ReturnDocument.AFTER
+            return_document=pymongo.ReturnDocument.AFTER
         ))
 
 
