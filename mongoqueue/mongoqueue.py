@@ -70,8 +70,12 @@ class MongoQueue(object):
     def drop_max_attempts(self):
         """
         """
-        self.collection.find_and_modify(
-            {"attempts": {"$gte": self.max_attempts}})
+        self.collection.find_one_and_update(
+            filter={"attempts": {"$gte": self.max_attempts}},
+            update={"$set": {"locked_by": None, 
+                             "locked_at": None},
+                             "$inc": {"attempts": 1}}
+        )
 
     def put(self, payload, priority=0):
         """Place a job into the queue
@@ -91,19 +95,6 @@ class MongoQueue(object):
             sort=[('priority', pymongo.DESCENDING)],
             return_document=pymongo.ReturnDocument.AFTER
         ))
-
-
-        # return self._wrap_one(self.collection.find_and_modify(
-        #     query={"locked_by": None,
-        #            "locked_at": None,
-        #            "attempts": {"$lt": self.max_attempts}},
-        #     update={"$set": {"locked_by": self.consumer_id,
-        #                      "locked_at": datetime.now()}},
-        #     sort=[('priority', pymongo.DESCENDING)],
-        #     new=1,
-        #     # This causes an error with MongoDB 4.2.
-        #     # limit=1
-        # ))
 
     def _jobs(self):
         return self.collection.find(
@@ -183,7 +174,7 @@ class Job(object):
     def complete(self):
         """Job has been completed.
         """
-        return self._queue.collection.find_and_modify(
+        return self._queue.collection.find_one(
             {"_id": self.job_id, "locked_by": self._queue.consumer_id})
 
     def error(self, message=None):
@@ -199,12 +190,6 @@ class Job(object):
                              "$inc": {"attempts": 1}}
         )
 
-        # self._queue.collection.find_and_modify(
-        #     {"_id": self.job_id, "locked_by": self._queue.consumer_id},
-        #     update={"$set": {
-        #         "locked_by": None, "locked_at": None, "last_error": message},
-        #         "$inc": {"attempts": 1}})
-
     def progress(self, count=0):
         """Note progress on a long running task.
         """
@@ -214,9 +199,6 @@ class Job(object):
             update={"$set": {"progress": count, 
                              "locked_at": datetime.now()}}
         )
-        # return self._queue.collection.find_and_modify(
-        #     {"_id": self.job_id, "locked_by": self._queue.consumer_id},
-        #     update={"$set": {"progress": count, "locked_at": datetime.now()}})
 
     def release(self):
         """Put the job back into_queue.
@@ -228,10 +210,6 @@ class Job(object):
                              "locked_at": None},
                              "$inc": {"attempts": 1}}
         )
-        # return self._queue.collection.find_and_modify(
-        #     {"_id": self.job_id, "locked_by": self._queue.consumer_id},
-        #     update={"$set": {"locked_by": None, "locked_at": None},
-        #             "$inc": {"attempts": 1}})
 
     ## Context Manager support
 
