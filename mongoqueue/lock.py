@@ -53,19 +53,21 @@ class MongoLock(object):
     def _acquire(self):
         ttl = datetime.now() + timedelta(seconds=self._lease_time)
         try:
-            self.collection.insert({
-                '_id': self.lock_name,
-                'ttl': ttl,
-                'client_id': self._client_id},
-                w=1, j=True)
+            self.collection.insert_one({
+                    '_id': self.lock_name,
+                    'ttl': ttl,
+                    'client_id': self._client_id},
+                    write_concern={"w": 1, "j": True})
         except errors.DuplicateKeyError:
-            self.collection.remove(
-                {"_id": self.lock_name, 'ttl': {'$lt': datetime.now()}})
+            self.collection.delete_one(
+                filter={"_id": self.lock_name, 
+                        'ttl': {'$lt': datetime.now()}})
             try:
-                self.collection.insert(
-                    {'_id': self.lock_name,
-                     'ttl': ttl,
-                     'client_id': self._client_id}, w=1, j=True)
+                self.collection.insert_one({
+                    '_id': self.lock_name,
+                    'ttl': ttl,
+                    'client_id': self._client_id},
+                    write_concern={"w": 1, "j": True})
             except errors.DuplicateKeyError:
                 self._locked = False
                 return self._locked
@@ -76,7 +78,8 @@ class MongoLock(object):
     def release(self):
         if not self._locked:
             return False
-        self.collection.remove(
-            {"_id": self.lock_name, 'client_id': self._client_id}, j=True, w=1)
+        self.collection.delete_one(
+            filter={"_id": self.lock_name, 'client_id': self._client_id}, 
+            write_concern={"w": 1, "j": True})
         self._locked = False
         return True
