@@ -174,7 +174,7 @@ class Job(object):
     def complete(self):
         """Job has been completed.
         """
-        return self._queue.collection.find_one(
+        return self._queue.collection.find_one_and_delete(
             {"_id": self.job_id, "locked_by": self._queue.consumer_id})
 
     def error(self, message=None):
